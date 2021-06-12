@@ -33,6 +33,7 @@ client.on('ready', () => {
 });
 
 client.on('message', async message => {
+    if(message.author.bot) return;
     const args = message.content.slice(globalConfig['prefix'].length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
 
