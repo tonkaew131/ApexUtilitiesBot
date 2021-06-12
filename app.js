@@ -12,7 +12,23 @@ const globalConfig = {
 }
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    let readyAt = client.readyAt.toLocaleString('en-US', {
+        timeZone: 'Asia/Bangkok',
+        hour12: false,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric'
+    });
+
+    let logMessages = `Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds. `;
+    logMessages += `Ready at ${readyAt}`;
+    console.log(logMessages);
+
+    client.user.setActivity('🤔 !help', { type: 'LISTENING' });
 });
 
 client.on('message', async message => {
@@ -22,10 +38,8 @@ client.on('message', async message => {
     let user = message.author;
 
     if (command == 'map') {
-        let mapData = await APIUtils.getMapRotationAPI();
-
-        if(args[0] == 'help') {
-            let description = '**Description:** Get current map\n';
+        if (args[0] == 'help') {
+            let description = '**Description:** Check current apex legends\' map\n';
             description += '**Usage:** au!map [rank/arenas/normal]\n';
             description += '**Example:** au!map';
 
@@ -38,14 +52,24 @@ client.on('message', async message => {
             return;
         }
 
-        let description = 'End in: ';
-        description += `\nnext map will be: ${mapData['battle_royale']['next']['map']} (last for )`;
+        let mapData = await APIUtils.getMapRotationAPI();
+
+        let title = '';
+        let description = '';
+        let map = '';
+        if (args[0] == undefined || args[0] == 'normal') {
+            map = mapData['battle_royale']['current']['map'];
+            title = `Current map: ${map}`;
+
+            description = `End in: ${mapData['battle_royale']['current']['remainingTimer']}`;
+            description += `\nNext map: ${mapData['battle_royale']['next']['map']}`;
+        }
 
         const embed = new Discord.MessageEmbed()
             .setColor(globalConfig['colorTheme'])
-            .setAuthor(`Current map: ${mapData['battle_royale']['current']['map']}`, 'https://media.discordapp.net/attachments/616536510950408192/853238077630709780/apex.png?width=720&height=670')
-            .setThumbnail(Utils.getMapThumbnail())
-            .setDescription()
+            .setAuthor(title, 'https://media.discordapp.net/attachments/616536510950408192/853238077630709780/apex.png?width=720&height=670')
+            .setThumbnail(Utils.getMapThumbnail(map))
+            .setDescription(description)
             .setFooter('Requested by ' + user.username, user.avatarURL())
             .setTimestamp(message.createdAt)
 
