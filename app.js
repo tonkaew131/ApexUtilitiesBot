@@ -54,9 +54,9 @@ client.on('message', async message => {
         }
 
         let mapData = await APIUtils.getMapRotationAPI();
-        if(mapData['success'] == false) {
+        if (mapData['success'] == false) {
             const embed = new Discord.MessageEmbed()
-                .setAuthor('❌ There is a problem talking to API ❌')
+                .setAuthor(`❌ ${userData['cause']} ❌`)
                 .setColor(globalConfig['errorTheme'])
 
             message.channel.send(embed);
@@ -68,12 +68,12 @@ client.on('message', async message => {
         let endin = '';
         let currentMap = '';
         let nextMap = ''
-        if (args[0] == undefined || args[0] == 'normal') {
+        if (args[0] == undefined || args[0] == 'normal' || args[0] == 'trios' || args[0] == 'duos') {
             currentMap = mapData['battle_royale']['current']['map'];
             nextMap = mapData['battle_royale']['next']['map'];
 
             endin = mapData['battle_royale']['current']['remainingTimer'];
-        } else if (args[0] == 'arenas') {
+        } else if (args[0] == 'arenas' || args[0] == 'arena') {
             currentMap = mapData['arenas']['current']['map'];
             nextMap = mapData['arenas']['next']['map'];
 
@@ -100,6 +100,41 @@ client.on('message', async message => {
     }
 
     if (command == 'rank') {
+        if (args[0] == undefined || args[0] == 'help') {
+            let description = '**Description:** Fetching user\'s rank\n';
+            description += '**Usage:** au!rank [pc/xbox/psn]\n';
+            description += '**Example:** au!rank FOG_KunG';
+
+            const embed = new Discord.MessageEmbed()
+                .setTitle('**Command: au!rank**')
+                .setDescription(description)
+                .setColor(globalConfig['colorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        let platform = '';
+        let name = '';
+        if (args.length == 1) {
+            platform = 'origin';
+            name = args[0];
+        } else {
+            platform = args[0];
+            name = args[1];
+        }
+
+        let userData = await APIUtils.getPlayerProfile(platform, name);
+        if (userData['success'] == false) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor(`❌ ${userData['cause']} ❌`)
+                .setColor(globalConfig['errorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        console.log(JSON.stringify(userData));
         return;
     }
 
