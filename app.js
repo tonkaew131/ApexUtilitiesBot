@@ -8,7 +8,8 @@ const Utils = require('./lib/utils');
 
 const globalConfig = {
     prefix: 'au!',
-    colorTheme: '#fa8072'
+    colorTheme: '#fa8072',
+    errorTheme: '#ff0000'
 }
 
 client.on('ready', () => {
@@ -53,6 +54,16 @@ client.on('message', async message => {
         }
 
         let mapData = await APIUtils.getMapRotationAPI();
+        if(mapData['success'] == false) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor('❌ There is a problem talking to API ❌')
+                .setColor(globalConfig['errorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        mapData = mapData['data'];
 
         let endin = '';
         let currentMap = '';
@@ -83,6 +94,20 @@ client.on('message', async message => {
             .setDescription(description)
             .setFooter('Requested by ' + user.username, user.avatarURL())
             .setTimestamp(message.createdAt)
+
+        message.channel.send(embed);
+        return;
+    }
+
+    if (command == 'rank') {
+        return;
+    }
+
+    if (command == 'github') {
+        const embed = new Discord.MessageEmbed()
+            .setTitle('**Apex Utilities Bot\'s Github**')
+            .setDescription('https://github.com/tonkaew131/ApexUtilitiesBot')
+            .setColor(globalConfig['colorTheme'])
 
         message.channel.send(embed);
         return;
