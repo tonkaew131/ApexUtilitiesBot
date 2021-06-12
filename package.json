@@ -1,0 +1,23 @@
+{
+  "name": "apexutilitiesbot",
+  "version": "1.0.0",
+  "description": "A very useful discord bot for Apex Legends",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonkaew131/ApexUtilitiesBot.git"
+  },
+  "author": "tonkaew131",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tonkaew131/ApexUtilitiesBot/issues"
+  },
+  "homepage": "https://github.com/tonkaew131/ApexUtilitiesBot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0"
+  }
+}
