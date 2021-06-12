@@ -54,21 +54,32 @@ client.on('message', async message => {
 
         let mapData = await APIUtils.getMapRotationAPI();
 
-        let title = '';
-        let description = '';
-        let map = '';
+        let endin = '';
+        let currentMap = '';
+        let nextMap = ''
         if (args[0] == undefined || args[0] == 'normal') {
-            map = mapData['battle_royale']['current']['map'];
-            title = `Current map: ${map}`;
+            currentMap = mapData['battle_royale']['current']['map'];
+            nextMap = mapData['battle_royale']['next']['map'];
 
-            description = `End in: ${mapData['battle_royale']['current']['remainingTimer']}`;
-            description += `\nNext map: ${mapData['battle_royale']['next']['map']}`;
+            endin = mapData['battle_royale']['current']['remainingTimer'];
+        } else if (args[0] == 'arenas') {
+            currentMap = mapData['arenas']['current']['map'];
+            nextMap = mapData['arenas']['next']['map'];
+
+            endin = mapData['arenas']['current']['remainingTimer'];
+        } else if (args[0] == 'rank') {
+            currentMap = mapData['ranked']['current']['map'];
+            nextMap = mapData['ranked']['next']['map'];
         }
+
+        let description = '';
+        if (endin != '') description = `**End in:** ${endin}`;
+        description += `\n**Next map:** ${nextMap}`;
 
         const embed = new Discord.MessageEmbed()
             .setColor(globalConfig['colorTheme'])
-            .setAuthor(title, 'https://media.discordapp.net/attachments/616536510950408192/853238077630709780/apex.png?width=720&height=670')
-            .setThumbnail(Utils.getMapThumbnail(map))
+            .setAuthor(currentMap, 'https://media.discordapp.net/attachments/616536510950408192/853238077630709780/apex.png?width=720&height=670')
+            .setThumbnail(Utils.getMapThumbnail(currentMap))
             .setDescription(description)
             .setFooter('Requested by ' + user.username, user.avatarURL())
             .setTimestamp(message.createdAt)
