@@ -38,7 +38,14 @@ client.on('message', async message => {
 
     let prefix = '';
     if (message.guild == null) prefix = globalConfig['prefix'];
-    else prefix = DatabaseUtils.getGuildData(message.guild.id)['prefix'];
+    else {
+        prefix = DatabaseUtils.getGuildData(message.guild.id)['prefix'];
+
+        let allowedChannels = DatabaseUtils.getGuildData(message.guild.id)['channels'];
+        if (allowedChannels.length != 0) {
+            if (allowedChannels.includes(message.channel.id) == false) return;
+        }
+    }
 
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
@@ -74,7 +81,8 @@ client.on('message', async message => {
         if (args[0] == undefined || args[0] == 'help') {
             let description = '**Description:** Config bot settings\n';
             description += '**Settings:**\n';
-            description += '- prefix: Set prefix';
+            description += '- prefix: Set prefix\n';
+            description += '- channels: Config command channels\n';
 
             const embed = new Discord.MessageEmbed()
                 .setTitle('**Command: settings**')
@@ -102,6 +110,68 @@ client.on('message', async message => {
 
             DatabaseUtils.updateGuildData(message.guild.id, { prefix: args[1] });
             message.channel.send(`<@${user.id}>, Prefix changed to \`${args[1]}\``);
+            return;
+        }
+
+        if (args[0] == 'channels') {
+            if (args[1] == undefined) {
+                let description = '**Description:** Config command channels\n';
+                description += '**Usage**: settings channels [add/remove/list] [channel id]\n';
+                description += '**Example**: au!settings channels add 752859515119992837'
+
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('**Settings: prefix**')
+                    .setDescription(description)
+                    .setColor(globalConfig['colorTheme'])
+
+                message.channel.send(embed);
+                return;
+            }
+
+            let channels = DatabaseUtils.getGuildData(message.guild.id)['channels'];
+            if (args[1] == 'add') {
+                if (args[2] == undefined) return;
+                if (Utils.isValidChannel(message.guild, args[2]) == false) {
+                    message.channel.send('**Invalid channel id**');
+                    return;
+                }
+
+                if(channels.includes(args[2])) return;
+                channels.push(args[2]);
+                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
+
+                message.channel.send(`\`${args[2]}\` **added to list!**`);
+                return;
+            }
+            if (args[1] == 'remove') {
+                if(args[2] == undefined) return;
+                if(channels.includes(args[2]) == false) {
+                    message.channel.send('**Invalid channel id**');
+                    return;
+                }
+
+                channels.splice(channels.indexOf(args[2]));
+                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
+
+                message.channel.send(`\`${args[2]}\` **has been removed from list!**`);
+                return;
+            }
+            if (args[1] == 'list') {
+                if (channels.length == 0) {
+                    message.channel.send('**There is no command channels set, bot will work every channels**');
+                    return;
+                }
+
+                let result = `There ${channels.length == 1 ? 'is' : 'are'} ${channels.length}`;
+                result += ` command channel${channels.length == 1 ? '' : 's'}`;
+                for(var key in channels) {
+                    result += `\n- \`${channels[key]}\``;
+                }
+
+                message.channel.send(result);
+                return;
+            }
+            return;
         }
 
         return;
