@@ -39,6 +39,20 @@ client.on('message', async message => {
 
     let user = message.author;
 
+    if (command == 'help') {
+        let description = '►**help** : For guide to how to use bot\n';
+        description += '►**map:** Check current apex legends\' map\n';
+        description += '►**rank:** Fetching user\'s rank\n';
+
+        const embed = new Discord.MessageEmbed()
+            .setTitle('--- **Commands list** ---')
+            .setDescription(description)
+            .setColor(globalConfig['colorTheme'])
+
+        message.channel.send(embed);
+        return;
+    }
+
     if (command == 'map') {
         if (args[0] == 'help') {
             let description = '**Description:** Check current apex legends\' map\n';
