@@ -33,7 +33,7 @@ client.on('ready', () => {
 });
 
 client.on('message', async message => {
-    if(message.author.bot) return;
+    if (message.author.bot) return;
     const args = message.content.slice(globalConfig['prefix'].length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
 
@@ -135,7 +135,21 @@ client.on('message', async message => {
             return;
         }
 
-        console.log(JSON.stringify(userData));
+        let overviewStats = Utils.getOverviewStats(userData['data']['segments'])['stats'];
+        let description = overviewStats['rankScore']['metadata']['rankName'];
+        description += ` ( ${overviewStats['rankScore']['displayValue']} MMR )`;
+        description += `, Level: ${overviewStats['level']['displayValue']}`;
+
+        const embed = new Discord.MessageEmbed()
+            .setColor(globalConfig['colorTheme'])
+            .setTitle(overviewStats['rankScore']['metadata']['rankName'])
+            .setAuthor(userData['data']['platformInfo']['platformUserHandle'], message.author.avatarURL())
+            .setDescription(description)
+            .setThumbnail(overviewStats['rankScore']['metadata']['iconUrl'])
+            .setTimestamp(message.createdAt)
+            .setFooter('API by https://tracker.gg', 'https://tracker.gg/public/icons/tile310.png');
+
+        message.channel.send(embed);
         return;
     }
 
