@@ -121,7 +121,7 @@ client.on('message', async message => {
             platform = 'origin';
             name = args[0];
         } else {
-            platform = args[0];
+            platform = args[0] == 'pc' ? 'origin' : args[0];
             name = args[1];
         }
 
