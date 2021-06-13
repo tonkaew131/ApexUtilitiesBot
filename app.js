@@ -30,23 +30,24 @@ client.on('ready', () => {
     logMessages += `Ready at ${readyAt}`;
     console.log(logMessages);
 
-    client.user.setActivity('🤔 !help', { type: 'LISTENING' });
+    client.user.setActivity('🤔 au!help', { type: 'LISTENING' });
 });
 
 client.on('message', async message => {
     if (message.author.bot) return;
 
     let prefix = '';
-    if(message.guild == null) prefix = globalConfig['prefix'];
-    prefix = DatabaseUtils.getGuildData(message.guild.id)['prefix'];
+    if (message.guild == null) prefix = globalConfig['prefix'];
+    else prefix = DatabaseUtils.getGuildData(message.guild.id)['prefix'];
 
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
-    
+
     let user = message.author;
 
     if (command == 'help') {
         let description = '►**help** : For guide to how to use bot\n';
+        description += '►**settings** : Config bot settings\n';
         description += '►**map:** Check current apex legends\' map\n';
         description += '►**rank:** Fetching user\'s rank\n';
 
@@ -59,14 +60,61 @@ client.on('message', async message => {
         return;
     }
 
+    if (command == 'settings') {
+        if (message.guild == null) {
+            message.channel.send('**You can\'t change settings in DM!**');
+            return;
+        }
+
+        if (message.member.hasPermission('ADMINISTRATOR') == false) {
+            message.channel.send('**You have to be administrator of this guild to change settings**');
+            return;
+        }
+
+        if (args[0] == undefined || args[0] == 'help') {
+            let description = '**Description:** Config bot settings\n';
+            description += '**Settings:**\n';
+            description += '- prefix: Set prefix';
+
+            const embed = new Discord.MessageEmbed()
+                .setTitle('**Command: settings**')
+                .setDescription(description)
+                .setColor(globalConfig['colorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        if (args[0] == 'prefix') {
+            if (args[1] == undefined) {
+                let description = '**Description:** Set this guild\'s prefix\n';
+                description += '**Usage**: settings prefix [prefix]\n';
+                description += '**Example**: au!settings prefix !'
+
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('**Settings: prefix**')
+                    .setDescription(description)
+                    .setColor(globalConfig['colorTheme'])
+
+                message.channel.send(embed);
+                return;
+            }
+
+            DatabaseUtils.updateGuildData(message.guild.id, { prefix: args[1] });
+            message.channel.send(`<@${user.id}>, Prefix changed to \`${args[1]}\``);
+        }
+
+        return;
+    }
+
     if (command == 'map') {
         if (args[0] == 'help') {
             let description = '**Description:** Check current apex legends\' map\n';
-            description += '**Usage:** au!map [rank/arenas/normal]\n';
+            description += '**Usage:** map [rank/arenas/normal]\n';
             description += '**Example:** au!map';
 
             const embed = new Discord.MessageEmbed()
-                .setTitle('**Command: au!map**')
+                .setTitle('**Command: map**')
                 .setDescription(description)
                 .setColor(globalConfig['colorTheme'])
 
@@ -123,11 +171,11 @@ client.on('message', async message => {
     if (command == 'rank') {
         if (args[0] == undefined || args[0] == 'help') {
             let description = '**Description:** Fetching user\'s rank\n';
-            description += '**Usage:** au!rank [pc/xbox/psn]\n';
+            description += '**Usage:** rank [pc/xbox/psn]\n';
             description += '**Example:** au!rank FOG_KunG';
 
             const embed = new Discord.MessageEmbed()
-                .setTitle('**Command: au!rank**')
+                .setTitle('**Command: rank**')
                 .setDescription(description)
                 .setColor(globalConfig['colorTheme'])
 
