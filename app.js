@@ -143,7 +143,7 @@ client.on('message', async message => {
         const embed = new Discord.MessageEmbed()
             .setColor(globalConfig['colorTheme'])
             .setTitle(overviewStats['rankScore']['metadata']['rankName'])
-            .setAuthor(userData['data']['platformInfo']['platformUserHandle'], message.author.avatarURL())
+            .setAuthor(userData['data']['platformInfo']['platformUserHandle'], user.avatarURL())
             .setDescription(description)
             .setThumbnail(overviewStats['rankScore']['metadata']['iconUrl'])
             .setTimestamp(message.createdAt)
