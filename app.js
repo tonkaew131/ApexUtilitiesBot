@@ -3,6 +3,7 @@ const client = new Discord.Client();
 
 require('dotenv').config();
 
+const DatabaseUtils = require('./lib/db');
 const APIUtils = require('./lib/api');
 const Utils = require('./lib/utils');
 
@@ -34,9 +35,14 @@ client.on('ready', () => {
 
 client.on('message', async message => {
     if (message.author.bot) return;
-    const args = message.content.slice(globalConfig['prefix'].length).trim().split(/ +/g);
-    const command = args.shift().toLowerCase();
 
+    let prefix = '';
+    if(message.guild == null) prefix = globalConfig['prefix'];
+    prefix = DatabaseUtils.getGuildData(message.guild.id)['prefix'];
+
+    const args = message.content.slice(prefix.length).trim().split(/ +/g);
+    const command = args.shift().toLowerCase();
+    
     let user = message.author;
 
     if (command == 'help') {
