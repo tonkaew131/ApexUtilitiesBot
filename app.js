@@ -54,126 +54,18 @@ client.on('message', async message => {
 
     if (command == 'help') {
         let description = '►**help** : For guide to how to use bot\n';
-        description += '►**settings** : Config bot settings\n';
         description += '►**map:** Check current apex legends\' map\n';
+        description += '►**nextmap:** Calculate upcoming apex legends\' map\n';
         description += '►**rank:** Fetching user\'s rank\n';
+        description += '►**settings** : Config bot settings\n';
+        description += '►**github** : Project\'s repository\n';
 
         const embed = new Discord.MessageEmbed()
-            .setTitle('--- **Commands list** ---')
+            .setTitle('**Commands list**')
             .setDescription(description)
             .setColor(globalConfig['colorTheme'])
 
         message.channel.send(embed);
-        return;
-    }
-
-    if (command == 'settings') {
-        if (message.guild == null) {
-            message.channel.send('**You can\'t change settings in DM!**');
-            return;
-        }
-
-        if (message.member.hasPermission('ADMINISTRATOR') == false) {
-            message.channel.send('**You have to be administrator of this guild to change settings**');
-            return;
-        }
-
-        if (args[0] == undefined || args[0] == 'help') {
-            let description = '**Description:** Config bot settings\n';
-            description += '**Settings:**\n';
-            description += '- prefix: Set prefix\n';
-            description += '- channels: Config command channels\n';
-
-            const embed = new Discord.MessageEmbed()
-                .setTitle('**Command: settings**')
-                .setDescription(description)
-                .setColor(globalConfig['colorTheme'])
-
-            message.channel.send(embed);
-            return;
-        }
-
-        if (args[0] == 'prefix') {
-            if (args[1] == undefined) {
-                let description = '**Description:** Set this guild\'s prefix\n';
-                description += '**Usage**: settings prefix [prefix]\n';
-                description += '**Example**: au!settings prefix !'
-
-                const embed = new Discord.MessageEmbed()
-                    .setTitle('**Settings: prefix**')
-                    .setDescription(description)
-                    .setColor(globalConfig['colorTheme'])
-
-                message.channel.send(embed);
-                return;
-            }
-
-            DatabaseUtils.updateGuildData(message.guild.id, { prefix: args[1] });
-            message.channel.send(`<@${user.id}>, Prefix changed to \`${args[1]}\``);
-            return;
-        }
-
-        if (args[0] == 'channels') {
-            if (args[1] == undefined) {
-                let description = '**Description:** Config command channels\n';
-                description += '**Usage**: settings channels [add/remove/list] [channel id]\n';
-                description += '**Example**: au!settings channels add 752859515119992837'
-
-                const embed = new Discord.MessageEmbed()
-                    .setTitle('**Settings: prefix**')
-                    .setDescription(description)
-                    .setColor(globalConfig['colorTheme'])
-
-                message.channel.send(embed);
-                return;
-            }
-
-            let channels = DatabaseUtils.getGuildData(message.guild.id)['channels'];
-            if (args[1] == 'add') {
-                if (args[2] == undefined) return;
-                if (Utils.isValidChannel(message.guild, args[2]) == false) {
-                    message.channel.send('**Invalid channel id**');
-                    return;
-                }
-
-                if(channels.includes(args[2])) return;
-                channels.push(args[2]);
-                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
-
-                message.channel.send(`\`${args[2]}\` **added to list!**`);
-                return;
-            }
-            if (args[1] == 'remove') {
-                if(args[2] == undefined) return;
-                if(channels.includes(args[2]) == false) {
-                    message.channel.send('**Invalid channel id**');
-                    return;
-                }
-
-                channels.splice(channels.indexOf(args[2]));
-                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
-
-                message.channel.send(`\`${args[2]}\` **has been removed from list!**`);
-                return;
-            }
-            if (args[1] == 'list') {
-                if (channels.length == 0) {
-                    message.channel.send('**There is no command channels set, bot will work every channels**');
-                    return;
-                }
-
-                let result = `There ${channels.length == 1 ? 'is' : 'are'} ${channels.length}`;
-                result += ` command channel${channels.length == 1 ? '' : 's'}`;
-                for(var key in channels) {
-                    result += `\n- \`${channels[key]}\``;
-                }
-
-                message.channel.send(result);
-                return;
-            }
-            return;
-        }
-
         return;
     }
 
@@ -238,6 +130,36 @@ client.on('message', async message => {
         return;
     }
 
+    if (command == 'nextmap' || command == 'nm') {
+        if (args[0] == undefined || args[1] == undefined || args[0] == 'help') {
+            let description = '**Description:** Calculate upcoming apex legends\' map ( GMT+07:00 )\n';
+            description += '**Usage:** nextmap [YYYY-MM-DD/today/tomorrow] [HH-mm]\n';
+            description += '**Example:** au!nm tomorrow 18:00';
+
+            const embed = new Discord.MessageEmbed()
+                .setTitle('**Command: nextmap**')
+                .setDescription(description)
+                .setColor(globalConfig['colorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        let targetedTime = Utils.formatDate(args[0], args[1]);
+        if (isNaN(targetedTime)) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor('❌ Invalid date ❌')
+                .setColor(globalConfig['errorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        message.channel.send(targetedTime);
+        console.log(JSON.stringify(await APIUtils.getMapRotationAPI()));
+        return;
+    }
+
     if (command == 'rank') {
         if (args[0] == undefined || args[0] == 'help') {
             let description = '**Description:** Fetching user\'s rank\n';
@@ -291,6 +213,124 @@ client.on('message', async message => {
         return;
     }
 
+    if (command == 'settings') {
+        if (message.guild == null) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor('❌ You can\'t change settings in DM! ❌')
+                .setColor(globalConfig['errorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        if (message.member.hasPermission('ADMINISTRATOR') == false) {
+            const embed = new Discord.MessageEmbed()
+                .setAuthor('❌ You have to be administrator of this guild to change settings ❌')
+                .setColor(globalConfig['errorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        if (args[0] == undefined || args[0] == 'help') {
+            let description = '**Description:** Config bot settings\n';
+            description += '**Settings:**\n';
+            description += '- prefix: Set prefix\n';
+            description += '- channels: Config command channels\n';
+
+            const embed = new Discord.MessageEmbed()
+                .setTitle('**Command: settings**')
+                .setDescription(description)
+                .setColor(globalConfig['colorTheme'])
+
+            message.channel.send(embed);
+            return;
+        }
+
+        if (args[0] == 'prefix') {
+            if (args[1] == undefined) {
+                let description = '**Description:** Set this guild\'s prefix\n';
+                description += '**Usage**: settings prefix [prefix]\n';
+                description += '**Example**: au!settings prefix !'
+
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('**Settings: prefix**')
+                    .setDescription(description)
+                    .setColor(globalConfig['colorTheme'])
+
+                message.channel.send(embed);
+                return;
+            }
+
+            DatabaseUtils.updateGuildData(message.guild.id, { prefix: args[1] });
+            message.channel.send(`<@${user.id}>, Prefix changed to \`${args[1]}\``);
+            return;
+        }
+
+        if (args[0] == 'channels') {
+            if (args[1] == undefined) {
+                let description = '**Description:** Config command channels\n';
+                description += '**Usage**: settings channels [add/remove/list] [channel id]\n';
+                description += '**Example**: au!settings channels add 752859515119992837'
+
+                const embed = new Discord.MessageEmbed()
+                    .setTitle('**Settings: prefix**')
+                    .setDescription(description)
+                    .setColor(globalConfig['colorTheme'])
+
+                message.channel.send(embed);
+                return;
+            }
+
+            let channels = DatabaseUtils.getGuildData(message.guild.id)['channels'];
+            if (args[1] == 'add') {
+                if (args[2] == undefined) return;
+                if (Utils.isValidChannel(message.guild, args[2]) == false) {
+                    message.channel.send('**Invalid channel id**');
+                    return;
+                }
+
+                if (channels.includes(args[2])) return;
+                channels.push(args[2]);
+                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
+
+                message.channel.send(`\`${args[2]}\` **added to list!**`);
+                return;
+            }
+            if (args[1] == 'remove') {
+                if (args[2] == undefined) return;
+                if (channels.includes(args[2]) == false) {
+                    message.channel.send('**Invalid channel id**');
+                    return;
+                }
+
+                channels.splice(channels.indexOf(args[2]));
+                DatabaseUtils.updateGuildData(message.guild.id, { 'channels': channels });
+
+                message.channel.send(`\`${args[2]}\` **has been removed from list!**`);
+                return;
+            }
+            if (args[1] == 'list') {
+                if (channels.length == 0) {
+                    message.channel.send('**There is no command channels set, bot will work every channels**');
+                    return;
+                }
+
+                let result = `There ${channels.length == 1 ? 'is' : 'are'} ${channels.length}`;
+                result += ` command channel${channels.length == 1 ? '' : 's'}`;
+                for (var key in channels) {
+                    result += `\n- \`${channels[key]}\``;
+                }
+
+                message.channel.send(result);
+                return;
+            }
+            return;
+        }
+
+        return;
+    }
+
     if (command == 'github') {
         const embed = new Discord.MessageEmbed()
             .setTitle('**Apex Utilities Bot\'s Github**')
@@ -298,6 +338,21 @@ client.on('message', async message => {
             .setColor(globalConfig['colorTheme'])
 
         message.channel.send(embed);
+        return;
+    }
+
+    // admin's commands
+    if (process.env.ADMIN_ID.trim() == '') return;
+
+    if (command == 'resetnm') {
+        DatabaseUtils.updateBotData({
+            map_data: {
+                cache: {},
+                cycle_start: 0
+            }
+        });
+
+        message.channel.send('`au!nextmap` data\'s reset');
         return;
     }
 });
